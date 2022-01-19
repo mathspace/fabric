@@ -27,7 +27,7 @@ class FileCleaner(Integration):
         self.remote = []
 
     def teardown(self):
-        super(FileCleaner, self).teardown()
+        super().teardown()
         for created in self.local:
             os.unlink(created)
         for created in self.remote:
@@ -107,7 +107,7 @@ class TestRsync(Integration):
         """
         r = self.rsync(1)
         for x in rsync_sources:
-            assert re.search(r'^%s$' % x, r.stdout, re.M), "'%s' was not found in '%s'" % (x, r.stdout)
+            assert re.search(r'^%s$' % x, r.stdout, re.M), f"'{x}' was not found in '{r.stdout}'"
 
     def test_overriding_default_args(self):
         """
@@ -115,7 +115,7 @@ class TestRsync(Integration):
         """
         r = self.rsync(2, default_opts='-pthrz')
         for x in rsync_sources:
-            assert not re.search(r'^%s$' % x, r.stdout, re.M), "'%s' was found in '%s'" % (x, r.stdout)
+            assert not re.search(r'^%s$' % x, r.stdout, re.M), f"'{x}' was found in '{r.stdout}'"
 
 
 class TestUploadTemplate(FileCleaner):

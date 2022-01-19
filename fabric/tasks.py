@@ -1,5 +1,3 @@
-from __future__ import with_statement
-
 import inspect
 import six
 import sys
@@ -16,7 +14,7 @@ from fabric.exceptions import NetworkError
 if sys.version_info[:2] == (2, 5):
     # Python 2.5 inspect.getargspec returns a tuple
     # instead of ArgSpec namedtuple.
-    class ArgSpec(object):
+    class ArgSpec:
         def __init__(self, args, varargs, keywords, defaults):
             self.args = args
             self.varargs = varargs
@@ -49,7 +47,7 @@ def get_task_details(task):
     details.append('Arguments: %s' % (
         ', '.join(
             args_without_defaults + [
-                '%s=%r' % (arg, default)
+                f'{arg}={default!r}'
                 for arg, default in zip(args_with_defaults, default_args)
             ])
     ))
@@ -63,7 +61,7 @@ def _get_list(env):
     return inner
 
 
-class Task(object):
+class Task:
     """
     Abstract base class for objects wishing to be picked up as Fabric tasks.
 
@@ -153,7 +151,7 @@ class WrappedCallableTask(Task):
     .. seealso:: `~fabric.docs.unwrap_tasks`, `~fabric.decorators.task`
     """
     def __init__(self, callable, *args, **kwargs):
-        super(WrappedCallableTask, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.wrapped = callable
         # Don't use getattr() here -- we want to avoid touching self.name
         # entirely so the superclass' value remains default.
@@ -216,7 +214,7 @@ def _execute(task, host, my_env, args, kwargs, jobs, queue, multiprocessing):
     """
     # Log to stdout
     if state.output.running and not hasattr(task, 'return_value'):
-        print("[%s] Executing task '%s'" % (host, my_env['command']))
+        print("[{}] Executing task '{}'".format(host, my_env['command']))
     # Create per-run env with connection settings
     local_env = to_dict(host)
     local_env.update(my_env)
@@ -333,7 +331,7 @@ def execute(task, *args, **kwargs):
         my_env['command'] = task
         task = crawl(task, state.commands)
         if task is None:
-            msg = "%r is not callable or a valid task name" % (my_env['command'],)
+            msg = "{!r} is not callable or a valid task name".format(my_env['command'])
             if state.env.get('skip_unknown_tasks', False):
                 warn(msg)
                 return
@@ -410,7 +408,7 @@ def execute(task, *args, **kwargs):
             # This prevents Fabric from continuing on to any other tasks.
             # Otherwise, pull in results from the child run.
             ran_jobs = jobs.run()
-            for name, d in six.iteritems(ran_jobs):
+            for name, d in ran_jobs.items():
                 if d['exit_code'] != 0:
                     if isinstance(d['results'], NetworkError) and \
                             _is_network_error_ignored():

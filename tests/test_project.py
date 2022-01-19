@@ -88,7 +88,7 @@ class UploadProjectTestCase(unittest.TestCase):
         # local() is called more than once so we need an extra next_call()
         # otherwise fudge compares the args to the last call to local()
         self.fake_local.with_args(
-            arg.endswith("-C %s %s" % (cwd_path, cwd_name))
+            arg.endswith(f"-C {cwd_path} {cwd_name}")
         ).next_call()
 
         # Exercise
@@ -137,11 +137,11 @@ class UploadProjectTestCase(unittest.TestCase):
         # local() is called more than once so we need an extra next_call()
         # otherwise fudge compares the args to the last call to local()
         self.fake_local.with_args(
-            arg.endswith("-C %s %s" % (project_path, base))
+            arg.endswith(f"-C {project_path} {base}")
         ).next_call()
 
         # Exercise
-        project.upload_project(local_dir="%s/%s/" % (project_path, base))
+        project.upload_project(local_dir=f"{project_path}/{base}/")
 
 
     @fudge.with_fakes

@@ -21,7 +21,7 @@ from server import PORT, PASSWORDS, USER, HOST
 from mock_streams import mock_streams
 
 
-class FabricTest(object):
+class FabricTest:
     """
     Nose-oriented test runner which wipes state.env and provides file helpers.
     """
@@ -40,7 +40,7 @@ class FabricTest(object):
         self.tmpdir = tempfile.mkdtemp()
 
     def set_network(self):
-        env.update(to_dict('%s@%s:%s' % (USER, HOST, PORT)))
+        env.update(to_dict(f'{USER}@{HOST}:{PORT}'))
 
     def env_setup(self):
         # Set up default networking for test server
@@ -95,7 +95,7 @@ def password_response(password, times_called=None, silent=True):
     """
     fake = Fake('getpass', callable=True)
     # Assume stringtype or iterable, turn into mutable iterable
-    if isinstance(password, six.string_types):
+    if isinstance(password, str):
         passwords = [password]
     else:
         passwords = list(password)
@@ -121,7 +121,7 @@ def password_response(password, times_called=None, silent=True):
 def _assert_contains(needle, haystack, invert):
     matched = re.search(needle, haystack, re.M)
     if (invert and matched) or (not invert and not matched):
-        raise AssertionError("r'%s' %sfound in '%s'" % (
+        raise AssertionError("r'{}' {}found in '{}'".format(
             needle,
             "" if invert else "not ",
             haystack

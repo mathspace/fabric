@@ -16,7 +16,7 @@ from server import FakeSFTPServer
 __test__ = False
 
 
-class AttrHolder(object):
+class AttrHolder:
     pass
 
 

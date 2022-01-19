@@ -39,7 +39,7 @@ class FakeFile(six.StringIO):
         pass
 
     def __cmp__(self, other):
-        me = str(self) if isinstance(other, six.string_types) else self
+        me = str(self) if isinstance(other, str) else self
         return cmp(me, other)
 
 
@@ -47,13 +47,13 @@ class FakeFilesystem(dict):
     def __init__(self, d=None):
         # Replicate input dictionary using our custom __setitem__
         d = d or {}
-        for key, value in six.iteritems(d):
+        for key, value in d.items():
             self[key] = value
 
     def __setitem__(self, key, value):
-        if isinstance(value, six.string_types) or value is None:
+        if isinstance(value, str) or value is None:
             value = FakeFile(value, key)
-        super(FakeFilesystem, self).__setitem__(key, value)
+        super().__setitem__(key, value)
 
     def normalize(self, path):
         """
@@ -69,4 +69,4 @@ class FakeFilesystem(dict):
         return path
 
     def __getitem__(self, key):
-        return super(FakeFilesystem, self).__getitem__(self.normalize(key))
+        return super().__getitem__(self.normalize(key))

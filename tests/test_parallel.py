@@ -37,7 +37,7 @@ class TestParallel(FabricTest):
             assert USER not in env.host
             assert str(PORT) not in env.host
 
-        host_string = '%s@%s:%%s' % (USER, HOST)
+        host_string = f'{USER}@{HOST}:%s'
         with hide('everything'):
             execute(_task, hosts=[host_string % 2200, host_string % 2201])
 

@@ -1,5 +1,3 @@
-from __future__ import with_statement
-
 import os
 import posixpath
 import six
@@ -26,7 +24,7 @@ def _format_local(local_path, local_is_path):
         return getattr(local_path, 'name', '<file obj>')
 
 
-class SFTP(object):
+class SFTP:
     """
     SFTP helper class, which is also a facade for ssh.SFTPClient.
     """
@@ -41,19 +39,19 @@ class SFTP(object):
     def isdir(self, path):
         try:
             return stat.S_ISDIR(self.ftp.stat(path).st_mode)
-        except IOError:
+        except OSError:
             return False
 
     def islink(self, path):
         try:
             return stat.S_ISLNK(self.ftp.lstat(path).st_mode)
-        except IOError:
+        except OSError:
             return False
 
     def exists(self, path):
         try:
             self.ftp.lstat(path).st_mode
-        except IOError:
+        except OSError:
             return False
         return True
 
@@ -101,8 +99,7 @@ class SFTP(object):
         for name in dirs:
             path = join(top, name)
             if followlinks or not self.islink(path):
-                for x in self.walk(path, topdown, onerror, followlinks):
-                    yield x
+                yield from self.walk(path, topdown, onerror, followlinks)
         if not topdown:
             yield top, dirs, nondirs
 
@@ -145,7 +142,7 @@ class SFTP(object):
                 local_path = os.path.join(local_path, path_vars['basename'])
 
         if output.running:
-            print("[%s] download: %s <- %s" % (
+            print("[{}] download: {} <- {}".format(
                 env.host_string,
                 _format_local(local_path, local_is_path),
                 remote_path
@@ -163,9 +160,9 @@ class SFTP(object):
             # Temporarily nuke 'cwd' so sudo() doesn't "cd" its mv command.
             # (The target path has already been cwd-ified elsewhere.)
             with settings(hide('everything'), cwd=""):
-                sudo('cp -p "%s" "%s"' % (remote_path, target_path))
+                sudo(f'cp -p "{remote_path}" "{target_path}"')
                 # The user should always own the copied file.
-                sudo('chown %s "%s"' % (env.user, target_path))
+                sudo(f'chown {env.user} "{target_path}"')
                 # Only root and the user has the right to read the file
                 sudo('chmod 400 "%s"' % target_path)
                 remote_path = target_path
@@ -237,7 +234,7 @@ class SFTP(object):
             basename = os.path.basename(local_path)
             remote_path = posixpath.join(remote_path, basename)
         if output.running:
-            print("[%s] put: %s -> %s" % (
+            print("[{}] put: {} -> {}".format(
                 env.host_string,
                 _format_local(local_path, local_is_path),
                 posixpath.join(pre, remote_path)
@@ -261,7 +258,7 @@ class SFTP(object):
         if (local_is_path and mirror_local_mode) or (mode is not None):
             lmode = os.stat(local_path).st_mode if mirror_local_mode else mode
             # Cast to octal integer in case of string
-            if isinstance(lmode, six.string_types):
+            if isinstance(lmode, str):
                 lmode = int(lmode, 8)
             lmode = lmode & int('0o7777', 8)
             rmode = rattrs.st_mode
@@ -274,14 +271,14 @@ class SFTP(object):
                     # command. (The target path has already been cwd-ified
                     # elsewhere.)
                     with settings(hide('everything'), cwd=""):
-                        sudo('chmod %o \"%s\"' % (lmode, remote_path))
+                        sudo(f'chmod {lmode:o} \"{remote_path}\"')
                 else:
                     self.ftp.chmod(remote_path, lmode)
         if use_sudo:
             # Temporarily nuke 'cwd' so sudo() doesn't "cd" its mv command.
             # (The target path has already been cwd-ified elsewhere.)
             with settings(hide('everything'), cwd=""):
-                sudo("mv \"%s\" \"%s\"" % (remote_path, target_path))
+                sudo(f"mv \"{remote_path}\" \"{target_path}\"")
             # Revert to original remote_path for return value's sake
             remote_path = target_path
         return remote_path

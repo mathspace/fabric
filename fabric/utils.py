@@ -173,7 +173,7 @@ def fastprint(text, show_prefix=False, end="", flush=True):
 
 def handle_prompt_abort(prompt_for):
     import fabric.state
-    reason = "Needed to prompt for %s (host: %s), but %%s" % (
+    reason = "Needed to prompt for {} (host: {}), but %s".format(
         prompt_for, fabric.state.env.host_string
     )
     # Explicit "don't prompt me bro"
@@ -254,7 +254,7 @@ class _AliasDict(_AttributeDict):
     overlap will result in duplicate keys in the resulting list.
     """
     def __init__(self, arg=None, aliases=None):
-        init = super(_AliasDict, self).__init__
+        init = super().__init__
         if arg is not None:
             init(arg)
         else:
@@ -268,7 +268,7 @@ class _AliasDict(_AttributeDict):
             for aliased in self.aliases[key]:
                 self[aliased] = value
         else:
-            return super(_AliasDict, self).__setitem__(key, value)
+            return super().__setitem__(key, value)
 
     def expand_aliases(self, keys):
         ret = []
@@ -364,7 +364,7 @@ def _format_error_output(header, body):
     header_side_length = int((term_width - (len(header) + 2)) / 2)
     mark = "="
     side = mark * header_side_length
-    return "\n\n%s %s %s\n\n%s\n\n%s" % (
+    return "\n\n{} {} {}\n\n{}\n\n{}".format(
         side, header, side, body, mark * term_width
     )
 

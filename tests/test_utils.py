@@ -1,5 +1,3 @@
-from __future__ import with_statement
-
 import sys
 from unittest import TestCase
 
@@ -126,7 +124,7 @@ def test_puts_with_unicode_output():
     """
     puts() should print unicode input
     """
-    s = u"string!"
+    s = "string!"
     output.user = True
     puts(s, show_prefix=False)
     eq_(sys.stdout.getvalue(), s + "\n")
@@ -137,7 +135,7 @@ def test_puts_with_encoding_type_none_output():
     """
     puts() should print unicode output without a stream encoding
     """
-    s = u"string!"
+    s = "string!"
     output.user = True
     #sys.stdout.encoding = None
     puts(s, show_prefix=False)
@@ -162,7 +160,7 @@ def test_puts_with_prefix():
     h = "localhost"
     with settings(host_string=h):
         puts(s)
-    eq_(sys.stdout.getvalue(), "[%s] %s" % (h, s + "\n"))
+    eq_(sys.stdout.getvalue(), "[{}] {}".format(h, s + "\n"))
 
 
 @mock_streams('stdout')
@@ -292,4 +290,4 @@ class TestErrorHandling(FabricTest):
         with settings(colorize_errors=True):
             error("oh god", func=utils.abort, stderr="oops")
         # can't use assert_contains as ANSI codes contain regex specialchars
-        eq_(red("\Error: oh god\n\n"), sys.stderr.getvalue())
+        eq_(red("\\Error: oh god\n\n"), sys.stderr.getvalue())

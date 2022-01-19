@@ -1,5 +1,3 @@
-from __future__ import with_statement
-
 from fudge import Fake, patched_context, with_fakes
 import unittest
 from nose.tools import raises, ok_
@@ -39,7 +37,7 @@ class TestWrappedCallableTask(unittest.TestCase):
 
     def test_passes_unused_kwargs_to_parent(self):
         random_range = range(random.randint(1, 10))
-        kwargs = dict([("key_%s" % i, i) for i in random_range])
+        kwargs = {"key_%s" % i: i for i in random_range}
 
         def foo(): pass
         try:
@@ -54,7 +52,7 @@ class TestWrappedCallableTask(unittest.TestCase):
         WrappedCallableTask(foo, *args)
 
     def test_allows_any_number_of_kwargs(self):
-        kwargs = dict([("key%d" % i, i) for i in range(random.randint(0, 10))])
+        kwargs = {"key%d" % i: i for i in range(random.randint(0, 10))}
         def foo(): pass
         WrappedCallableTask(foo, **kwargs)
 
@@ -89,7 +87,7 @@ class TestWrappedCallableTask(unittest.TestCase):
     def test_passes_all_regular_args_to_run(self):
         def foo(*args): return args
         random_args = tuple(
-            [random.randint(1000, 2000) for i in range(random.randint(1, 5))]
+            random.randint(1000, 2000) for i in range(random.randint(1, 5))
         )
         task = WrappedCallableTask(foo)
         eq_(random_args, task(*random_args))
@@ -307,7 +305,7 @@ class TestExecute(FabricTest):
         roles = ['r1']
         exclude_hosts = ['a']
         def command():
-            eq_(set(env.all_hosts), set(['b', 'c', 'd']))
+            eq_(set(env.all_hosts), {'b', 'c', 'd'})
         task = Fake(callable=True, expect_call=True).calls(command)
         with settings(hide('everything'), roledefs=roledefs):
             execute(

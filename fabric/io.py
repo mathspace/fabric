@@ -31,14 +31,14 @@ def output_loop(*args, **kwargs):
     OutputLooper(*args, **kwargs).loop()
 
 
-class OutputLooper(object):
+class OutputLooper:
     def __init__(self, chan, attr, stream, capture, timeout):
         self.chan = chan
         self.stream = stream
         self.capture = capture
         self.timeout = timeout
         self.read_func = getattr(chan, attr)
-        self.prefix = "[%s] %s: " % (
+        self.prefix = "[{}] {}: ".format(
             env.host_string,
             "out" if attr == 'recv' else "err"
         )
@@ -87,7 +87,7 @@ class OutputLooper(object):
                     raise CommandTimeout(timeout=self.timeout)
                 continue
 
-            if six.PY3 is True and isinstance(bytelist, six.binary_type):
+            if six.PY3 is True and isinstance(bytelist, bytes):
                 # Note that we have to decode this right away, even if an error
                 # is thrown only later in the code, because e.g. '' != b'' (see
                 # first if below).
@@ -238,7 +238,7 @@ class OutputLooper(object):
         Iterate through the request prompts dict and return the response and
         original request if we find a match
         """
-        for tup in six.iteritems(env.prompts):
+        for tup in env.prompts.items():
             if _endswith(self.capture, tup[0]):
                 return tup
         return None, None

@@ -107,7 +107,7 @@ def rsync_project(
     # Create --exclude options from exclude list
     exclude_opts = ' --exclude "%s"' * len(exclude)
     # Double-backslash-escape
-    exclusions = tuple([str(s).replace('"', '\\\\"') for s in exclude])
+    exclusions = tuple(str(s).replace('"', '\\\\"') for s in exclude)
     # Honor SSH key(s)
     key_string = ""
     keys = key_filenames()
@@ -146,16 +146,16 @@ def rsync_project(
     if host.count(':') > 1:
         # Square brackets are mandatory for IPv6 rsync address,
         # even if port number is not specified
-        remote_prefix = "[%s@%s]" % (user, host)
+        remote_prefix = f"[{user}@{host}]"
     else:
-        remote_prefix = "%s@%s" % (user, host)
+        remote_prefix = f"{user}@{host}"
     if upload:
-        cmd = "rsync %s %s %s:%s" % (options, local_dir, remote_prefix, remote_dir)
+        cmd = f"rsync {options} {local_dir} {remote_prefix}:{remote_dir}"
     else:
-        cmd = "rsync %s %s:%s %s" % (options, remote_prefix, remote_dir, local_dir)
+        cmd = f"rsync {options} {remote_prefix}:{remote_dir} {local_dir}"
 
     if output.running:
-        print("[%s] rsync_project: %s" % (env.host_string, cmd))
+        print(f"[{env.host_string}] rsync_project: {cmd}")
     return local(cmd, capture=capture)
 
 
@@ -200,7 +200,7 @@ def upload_project(local_dir=None, remote_dir="", use_sudo=False):
 
     try:
         tar_path = os.path.join(tmp_folder, tar_file)
-        local("tar -czf %s -C %s %s" % (tar_path, local_path, local_name))
+        local(f"tar -czf {tar_path} -C {local_path} {local_name}")
         put(tar_path, target_tar, use_sudo=use_sudo)
         with cd(remote_dir):
             try:

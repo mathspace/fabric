@@ -3,7 +3,6 @@
 Functions to be used in fabfiles and other non-core code, such as run()/sudo().
 """
 
-from __future__ import with_statement
 
 import errno
 import os
@@ -42,7 +41,7 @@ def _shell_escape(string):
         '\\\\"'
     """
     for char in ('"', '$', '`'):
-        string = string.replace(char, '\%s' % char)
+        string = string.replace(char, r'\%s' % char)
     return string
 
 
@@ -111,12 +110,12 @@ def require(*keys, **kwargs):
         prefix = "The command '%s' failed because the " % env.command
     else:
         prefix = "The "
-    msg = "%sfollowing required environment %s not defined:\n%s" % (
+    msg = "{}following required environment {} not defined:\n{}".format(
         prefix, variable, indent(missing_keys)
     )
     # Print used_for if given
     if 'used_for' in kwargs:
-        msg += "\n\n%s used for %s" % (used, kwargs['used_for'])
+        msg += "\n\n{} used for {}".format(used, kwargs['used_for'])
     # And print provided_by if given
     if 'provided_by' in kwargs:
         funcs = kwargs['provided_by']
@@ -135,7 +134,7 @@ def require(*keys, **kwargs):
 
 
 def prompt(text, key=None, default='', validate=None):
-    """
+    r"""
     Prompt user with ``text`` and return the input (like ``raw_input``).
 
     A single space character will be appended for convenience, but nothing
@@ -236,7 +235,7 @@ def prompt(text, key=None, default='', validate=None):
                     validate += r'$'
                 result = re.findall(validate, value)
                 if not result:
-                    print("Regular expression validation failed: '%s' does not match '%s'\n" % (value, validate))
+                    print(f"Regular expression validation failed: '{value}' does not match '{validate}'\n")
                     # Reset value so we stay in the loop
                     value = None
     # At this point, value must be valid, so update env if necessary
@@ -244,7 +243,7 @@ def prompt(text, key=None, default='', validate=None):
         env[key] = value
     # Print warning if we overwrote some other value
     if key and previous_value is not None and previous_value != value:
-        warn("overwrote previous env variable '%s'; used to be '%s', is now '%s'." % (
+        warn("overwrote previous env variable '{}'; used to be '{}', is now '{}'.".format(
             key, previous_value, value
         ))
     # And return the value, too, just in case someone finds that useful.
@@ -570,14 +569,14 @@ def get(remote_path, local_path=None, use_sudo=False, temp_dir=""):
                 # Handle "file not found" errors (like Paramiko does if we
                 # explicitly try to grab a glob-like filename).
                 if not names:
-                    raise IOError(errno.ENOENT, "No such file")
+                    raise OSError(errno.ENOENT, "No such file")
             else:
                 names = [remote_path]
 
             # Handle invalid local-file-object situations
             if not local_is_path:
                 if len(names) > 1 or ftp.isdir(names[0]):
-                    error("[%s] %s is a glob or directory, but local_path is a file object!" % (env.host_string, remote_path))
+                    error(f"[{env.host_string}] {remote_path} is a glob or directory, but local_path is a file object!")
 
             for remote_path in names:
                 if ftp.isdir(remote_path):
@@ -607,7 +606,7 @@ def _sudo_prefix_argument(argument, value):
         return ""
     if str(value).isdigit():
         value = "#%s" % value
-    return ' %s "%s"' % (argument, value)
+    return f' {argument} "{value}"'
 
 
 def _sudo_prefix(user, group=None):
@@ -617,7 +616,7 @@ def _sudo_prefix(user, group=None):
     # Insert env.sudo_prompt into env.sudo_prefix
     prefix = env.sudo_prefix % env
     if user is not None or group is not None:
-        return "%s%s%s " % (prefix,
+        return "{}{}{} ".format(prefix,
                             _sudo_prefix_argument('-u', user),
                             _sudo_prefix_argument('-g', group))
     return prefix
@@ -671,7 +670,7 @@ def _prefix_commands(command, which):
     cwd = env.cwd if which == 'remote' else env.lcwd
     redirect = " >/dev/null" if not win32 else ''
     if cwd:
-        prefixes.insert(0, 'cd %s%s' % (cwd, redirect))
+        prefixes.insert(0, f'cd {cwd}{redirect}')
     glue = " && "
     prefix = (glue.join(prefixes) + glue) if prefixes else ""
     return prefix + command
@@ -713,10 +712,10 @@ def _prefix_env_vars(command, local=False):
             exp_cmd = 'export '
 
         exports = ' '.join(
-            '%s%s="%s"' % (set_cmd, k, v if k == 'PATH' else _shell_escape(v))
-            for k, v in six.iteritems(env_vars)
+            '{}{}="{}"'.format(set_cmd, k, v if k == 'PATH' else _shell_escape(v))
+            for k, v in env_vars.items()
         )
-        shell_env_str = '%s%s && ' % (exp_cmd, exports)
+        shell_env_str = f'{exp_cmd}{exports} && '
     else:
         shell_env_str = ''
 
@@ -926,9 +925,9 @@ def _run_command(command, shell=True, pty=True, combine_stderr=True,
         # Execute info line
         which = 'sudo' if sudo else 'run'
         if output.debug:
-            print("[%s] %s: %s" % (env.host_string, which, wrapped_command))
+            print(f"[{env.host_string}] {which}: {wrapped_command}")
         elif output.running:
-            print("[%s] %s: %s" % (env.host_string, which, given_command))
+            print(f"[{env.host_string}] {which}: {given_command}")
 
         # Actual execution, stdin/stdout/stderr handling, and termination
         result_stdout, result_stderr, status = _execute(
@@ -947,13 +946,13 @@ def _run_command(command, shell=True, pty=True, combine_stderr=True,
         out.real_command = wrapped_command
         if status not in env.ok_ret_codes:
             out.failed = True
-            msg = "%s() received nonzero return code %s while executing" % (
+            msg = "{}() received nonzero return code {} while executing".format(
                 which, status
             )
             if env.warn_only:
                 msg += " '%s'!" % given_command
             else:
-                msg += "!\n\nRequested: %s\nExecuted: %s" % (
+                msg += "!\n\nRequested: {}\nExecuted: {}".format(
                     given_command, wrapped_command
                 )
             error(message=msg, stdout=out, stderr=err)
@@ -1231,12 +1230,8 @@ def local(command, capture=False, shell=None):
         if dev_null is not None:
             dev_null.close()
     # Handle error condition (deal with stdout being None, too)
-    if six.PY3:
-        out = _AttributeString(stdout.decode('utf-8').strip() if stdout else "")
-        err = _AttributeString(stderr.decode('utf-8').strip() if stderr else "")
-    else:
-        out = _AttributeString(stdout.strip() if stdout else "")
-        err = _AttributeString(stderr.strip() if stderr else "")
+    out = _AttributeString(stdout.decode('utf-8').strip() if stdout else "")
+    err = _AttributeString(stderr.decode('utf-8').strip() if stderr else "")
     out.command = given_command
     out.real_command = wrapped_command
     out.failed = False
@@ -1244,7 +1239,7 @@ def local(command, capture=False, shell=None):
     out.stderr = err
     if p.returncode not in env.ok_ret_codes:
         out.failed = True
-        msg = "local() encountered an error (return code %s) while executing '%s'" % (p.returncode, command)
+        msg = f"local() encountered an error (return code {p.returncode}) while executing '{command}'"
         error(message=msg, stdout=out, stderr=err)
     out.succeeded = not out.failed
     # If we were capturing, this will be a string; otherwise it will be None.

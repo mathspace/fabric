@@ -8,7 +8,7 @@ sys.path.insert(0, mod)
 del sys.path[0]
 
 
-class Integration(object):
+class Integration:
     def setup(self):
         # Just so subclasses can super() us w/o fear. Meh.
         pass

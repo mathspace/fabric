@@ -9,7 +9,7 @@ The other callables defined in this module are internal only. Anything useful
 to individuals leveraging Fabric as a library, should be kept elsewhere.
 """
 import getpass
-from collections import Mapping
+from collections.abc import Mapping
 import inspect
 from optparse import OptionParser
 import os
@@ -43,7 +43,7 @@ _internals = reduce(lambda x, y: x + list(filter(callable, vars(y).values())),
 
 
 # Module recursion cache
-class _ModuleCache(object):
+class _ModuleCache:
     """
     Set-like object operating on modules and storing __name__s internally.
     """
@@ -70,9 +70,9 @@ def load_settings(path):
     """
     if os.path.exists(path):
         comments = lambda s: s and not s.startswith("#")
-        settings = filter(comments, open(path, 'r'))
-        return dict((k.strip(), v.strip()) for k, _, v in
-            [s.partition('=') for s in settings])
+        settings = filter(comments, open(path))
+        return {k.strip(): v.strip() for k, _, v in
+            [s.partition('=') for s in settings]}
     # Handle nonexistent or empty settings file
     return {}
 
@@ -373,7 +373,7 @@ def _is_task(name, value):
 
 def _sift_tasks(mapping):
     tasks, collections = [], []
-    for name, value in six.iteritems(mapping):
+    for name, value in mapping.items():
         if _is_task(name, value):
             tasks.append(name)
         elif isinstance(value, Mapping):
@@ -404,7 +404,7 @@ def _print_docstring(docstrings, name):
     if not docstrings:
         return False
     docstring = crawl(name, state.commands).__doc__
-    if isinstance(docstring, six.string_types):
+    if isinstance(docstring, str):
         return docstring
 
 
@@ -504,7 +504,7 @@ def display_command(name):
 
 
 def _escape_split(sep, argstr):
-    """
+    r"""
     Allows for escaping of the separator: e.g. task:arg='foo\, bar'
 
     It should be noted that the way bash et. al. do command line parsing, those
@@ -637,7 +637,7 @@ def main(fabfile_locations=None):
         # Handle --hosts, --roles, --exclude-hosts (comma separated string =>
         # list)
         for key in ['hosts', 'roles', 'exclude_hosts']:
-            if key in state.env and isinstance(state.env[key], six.string_types):
+            if key in state.env and isinstance(state.env[key], str):
                 state.env[key] = state.env[key].split(',')
 
         # Feed the env.tasks : tasks that are asked to be executed.

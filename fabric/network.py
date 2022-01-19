@@ -193,7 +193,7 @@ def ssh_config(host_string=None):
             with open(path) as fd:
                 conf.parse(fd)
                 env._ssh_config = conf
-        except IOError:
+        except OSError:
             warn("Unable to load SSH config file '%s'" % path)
             return dummy
     host = parse_host_string(host_string or env.host_string)['host']
@@ -211,7 +211,7 @@ def key_filenames():
     from fabric.state import env
     keys = env.key_filename
     # For ease of use, coerce stringish key filename into list
-    if isinstance(env.key_filename, six.string_types) or env.key_filename is None:
+    if isinstance(env.key_filename, str) or env.key_filename is None:
         keys = [keys]
     # Strip out any empty strings (such as the default value...meh)
     keys = list(filter(bool, keys))
@@ -384,7 +384,7 @@ def join_host_strings(user, host, port=None):
         template = "%s@[%s]:%s" if host.count(':') > 1 else "%s@%s:%s"
         return template % (user, host, port)
     else:
-        return "%s@%s" % (user, host)
+        return f"{user}@{host}"
 
 
 def normalize_to_string(host_string):
@@ -578,13 +578,13 @@ def connect(user, host, port, cache, seek_gateway=True):
             raise NetworkError('Name lookup failed for %s' % host, e)
         # Handle timeouts and retries, including generic errors
         # NOTE: In 2.6, socket.error subclasses IOError
-        except socket.error as e:
+        except OSError as e:
             not_timeout = type(e) is not socket.timeout
             giving_up = _tried_enough(tries)
             # Baseline error msg for when debug is off
             msg = "Timed out trying to connect to %s" % host
             # Expanded for debug on
-            err = msg + " (attempt %s of %s)" % (tries, env.connection_attempts)
+            err = msg + f" (attempt {tries} of {env.connection_attempts})"
             if giving_up:
                 err += ", giving up"
             err += ")"
@@ -600,13 +600,13 @@ def connect(user, host, port, cache, seek_gateway=True):
                 continue
             # Override eror msg if we were retrying other errors
             if not_timeout:
-                msg = "Low level socket error connecting to host %s on port %s: %s" % (
+                msg = "Low level socket error connecting to host {} on port {}: {}".format(
                     host, port, e.args[1]
                 )
             # Here, all attempts failed. Tweak error msg to show # tries.
             # TODO: find good humanization module, jeez
             s = "s" if env.connection_attempts > 1 else ""
-            msg += " (tried %s time%s)" % (env.connection_attempts, s)
+            msg += f" (tried {env.connection_attempts} time{s})"
             raise NetworkError(msg, e)
         # Ensure that if we terminated without connecting and we were given an
         # explicit socket, close it out.
@@ -643,7 +643,7 @@ def prompt_for_password(prompt=None, no_colon=False, stream=None):
     handle_prompt_abort("a connection or sudo password")
     stream = stream or sys.stderr
     # Construct prompt
-    default = "[%s] Login password for '%s'" % (env.host_string, env.user)
+    default = f"[{env.host_string}] Login password for '{env.user}'"
     password_prompt = prompt if (prompt is not None) else default
     if not no_colon:
         password_prompt += ": "

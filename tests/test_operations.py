@@ -1,5 +1,3 @@
-from __future__ import with_statement
-
 import os
 import re
 import shutil
@@ -190,7 +188,7 @@ def test_prompt_with_default():
     s = "This is my prompt"
     d = "default!"
     prompt(s, default=d)
-    eq_(sys.stdout.getvalue(), "%s [%s] " % (s, d))
+    eq_(sys.stdout.getvalue(), f"{s} [{d}] ")
 
 
 #
@@ -240,9 +238,9 @@ def test_shell_wrap():
     command = "command"
     for description, shell, sudo_prefix, result in (
         ("shell=True, sudo_prefix=None",
-            True, None, '%s "%s"' % (env.shell, command)),
+            True, None, f'{env.shell} "{command}"'),
         ("shell=True, sudo_prefix=string",
-            True, prefix, prefix + ' %s "%s"' % (env.shell, command)),
+            True, prefix, prefix + f' {env.shell} "{command}"'),
         ("shell=False, sudo_prefix=None",
             False, None, command),
         ("shell=False, sudo_prefix=string",
@@ -261,7 +259,7 @@ def test_shell_wrap_escapes_command_if_shell_is_true():
     cmd = "cd \"Application Support\""
     eq_(
         _shell_wrap(cmd, shell_escape=True, shell=True),
-        '%s "%s"' % (env.shell, _shell_escape(cmd))
+        f'{env.shell} "{_shell_escape(cmd)}"'
     )
 
 
@@ -273,7 +271,7 @@ def test_shell_wrap_does_not_escape_command_if_shell_is_true_and_shell_escape_is
     cmd = "cd \"Application Support\""
     eq_(
         _shell_wrap(cmd, shell_escape=False, shell=True),
-        '%s "%s"' % (env.shell, cmd)
+        f'{env.shell} "{cmd}"'
     )
 
 
@@ -298,7 +296,7 @@ def test_shell_escape_escapes_dollar_signs():
     _shell_escape() escapes dollar signs
     """
     cmd = "cd $HOME"
-    eq_(_shell_escape(cmd), 'cd \$HOME')
+    eq_(_shell_escape(cmd), r'cd \$HOME')
 
 
 def test_shell_escape_escapes_backticks():
@@ -306,7 +304,7 @@ def test_shell_escape_escapes_backticks():
     _shell_escape() escapes backticks
     """
     cmd = "touch test.pid && kill `cat test.pid`"
-    eq_(_shell_escape(cmd), "touch test.pid && kill \`cat test.pid\`")
+    eq_(_shell_escape(cmd), r"touch test.pid && kill \`cat test.pid\`")
 
 
 class TestCombineStderr(FabricTest):
@@ -936,7 +934,7 @@ class TestFileTransfers(FabricTest):
 
         with hide('everything'):
             retval = put(self.path(glob), remote_directory)
-        eq_(sorted(retval), sorted([remote_directory + path for path in paths]))
+        eq_(sorted(retval), sorted(remote_directory + path for path in paths))
 
     @server()
     def test_put_sends_correct_file_with_globbing_off(self):
@@ -1007,7 +1005,7 @@ class TestFileTransfers(FabricTest):
             fd.write('test')
         with nested(cd(d), hide('everything')):
             put(local, f)
-        assert self.exists_remotely('%s/%s' % (d, f))
+        assert self.exists_remotely(f'{d}/{f}')
 
     @server(files={'/tmp/test.txt': 'test'})
     def test_cd_should_apply_to_get(self):
@@ -1071,7 +1069,7 @@ class TestFileTransfers(FabricTest):
     @server()
     @mock_streams('stdout')
     def test_stringio_without_name(self):
-        file_obj = six.StringIO(u'test data')
+        file_obj = six.StringIO('test data')
         put(file_obj, '/')
         assert re.search('<file obj>', sys.stdout.getvalue())
 
@@ -1079,7 +1077,7 @@ class TestFileTransfers(FabricTest):
     @mock_streams('stdout')
     def test_stringio_with_name(self):
         """If a file object (StringIO) has a name attribute, use that in output"""
-        file_obj = six.StringIO(u'test data')
+        file_obj = six.StringIO('test data')
         file_obj.name = 'Test StringIO Object'
         put(file_obj, '/')
         assert re.search(file_obj.name, sys.stdout.getvalue())
@@ -1107,7 +1105,7 @@ def test_local_output_and_capture():
                 else:
                     shows.append('stderr')
                 with nested(hide(*hides), show(*shows)):
-                    d = "local(): capture: %r, stdout: %r, stderr: %r" % (
+                    d = "local(): capture: {!r}, stdout: {!r}, stderr: {!r}".format(
                         capture, stdout, stderr
                     )
                     local.description = d

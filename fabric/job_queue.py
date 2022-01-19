@@ -16,7 +16,7 @@ from fabric.network import ssh
 from fabric.context_managers import settings
 
 
-class JobQueue(object):
+class JobQueue:
     """
     The goal of this class is to make a queue of processes to run, and go
     through them running X number at any given time.

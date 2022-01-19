@@ -274,7 +274,7 @@ class BaseServer:
         """
         try:
             request, client_address = self.get_request()
-        except socket.error:
+        except OSError:
             return
         if self.verify_request(request, client_address):
             try:
@@ -330,7 +330,7 @@ class BaseServer:
 
         """
         print('-' * 40)
-        print('Exception happened during processing of request from %s' % (client_address,))
+        print(f'Exception happened during processing of request from {client_address}')
         import traceback
         traceback.print_exc()  # XXX But this goes to stderr!
         print('-' * 40)

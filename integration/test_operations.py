@@ -1,5 +1,3 @@
-from __future__ import with_statement
-
 from six import BytesIO
 import os
 import posixpath
@@ -15,7 +13,7 @@ from utils import Integration
 
 def assert_mode(path, mode):
     remote_mode = run("stat -c \"%%a\" \"%s\"" % path).stdout
-    assert remote_mode == mode, "remote %r != expected %r" % (remote_mode, mode)
+    assert remote_mode == mode, f"remote {remote_mode!r} != expected {mode!r}"
 
 
 class TestOperations(Integration):
@@ -24,11 +22,11 @@ class TestOperations(Integration):
     not_owned = "/tmp/notmine"
 
     def setup(self):
-        super(TestOperations, self).setup()
+        super().setup()
         run("mkdir -p %s" % " ".join([self.dirpath, self.not_owned]))
 
     def teardown(self):
-        super(TestOperations, self).teardown()
+        super().teardown()
         # Revert any chown crap from put sudo tests
         sudo("chown %s ." % env.user)
         # Nuke to prevent bleed
@@ -160,7 +158,7 @@ class TestOperations(Integration):
         sudo("echo 'nope' > %s" % target)
         # Same group as connected user
         gid = run("id -g")
-        sudo("chown root:%s %s" % (gid, target))
+        sudo(f"chown root:{gid} {target}")
         # Same perms as bug use case (only really need group read)
         sudo("chmod 0640 %s" % target)
         # Do eet

@@ -178,7 +178,7 @@ def upload_template(filename, destination, context=None, use_jinja=False,
 
 def sed(filename, before, after, limit='', use_sudo=False, backup='.bak',
     flags='', shell=False):
-    """
+    r"""
     Run a search-and-replace on ``filename`` with given regex patterns.
 
     Equivalent to ``sed -i<backup> -r -e "/<limit>/ s/<before>/<after>/<flags>g"
@@ -221,7 +221,7 @@ def sed(filename, before, after, limit='', use_sudo=False, backup='.bak',
     if limit:
         limit = r'/%s/ ' % limit
     context = {
-        'script': r"'%ss/%s/%s/%sg'" % (limit, before, after, flags),
+        'script': fr"'{limit}s/{before}/{after}/{flags}g'",
         'filename': _expand_path(filename),
         'backup': backup
     }
@@ -320,7 +320,7 @@ def comment(filename, regex, use_sudo=False, char='#', backup='.bak',
     if regex.endswith('$'):
         dollar = '$'
         regex = regex[:-1]
-    regex = "%s(%s)%s" % (carot, regex, dollar)
+    regex = f"{carot}({regex}){dollar}"
     return sed(
         filename,
         before=regex,
@@ -375,7 +375,7 @@ def contains(filename, text, exact=False, use_sudo=False, escape=True,
         if exact:
             text = "^%s$" % text
     with settings(hide('everything'), warn_only=True):
-        egrep_cmd = 'egrep "%s" %s' % (text, _expand_path(filename))
+        egrep_cmd = f'egrep "{text}" {_expand_path(filename)}'
         if not case_sensitive:
             egrep_cmd = egrep_cmd.replace('egrep', 'egrep -i', 1)
         return func(egrep_cmd, shell=shell).succeeded
@@ -421,7 +421,7 @@ def append(filename, text, use_sudo=False, partial=False, escape=True,
     """
     func = use_sudo and sudo or run
     # Normalize non-list input to be a list
-    if isinstance(text, six.string_types):
+    if isinstance(text, str):
         text = [text]
     for line in text:
         regex = '^' + _escape_for_regex(line)  + ('' if partial else '$')
@@ -430,7 +430,7 @@ def append(filename, text, use_sudo=False, partial=False, escape=True,
                          shell=shell)):
             continue
         line = line.replace("'", r"'\\''") if escape else line
-        func("echo '%s' >> %s" % (line, _expand_path(filename)))
+        func(f"echo '{line}' >> {_expand_path(filename)}")
 
 def _escape_for_regex(text):
     """Escape ``text`` to allow literal matching using egrep"""
@@ -452,7 +452,7 @@ def _escape_for_regex(text):
     return ''.join(sh_chars)
 
 def is_win():
-    """
+    r"""
     Return True if remote SSH server is running Windows, False otherwise.
 
     The idea is based on echoing quoted text: \*NIX systems will echo quoted
@@ -462,7 +462,7 @@ def is_win():
         return '"' in run('echo "Will you echo quotation marks"')
 
 def is_win():
-    """
+    r"""
     Return True if remote SSH server is running Windows, False otherwise.
 
     The idea is based on echoing quoted text: \*NIX systems will echo quoted
@@ -472,7 +472,7 @@ def is_win():
         return '"' in run('echo "Will you echo quotation marks"')
 
 def _expand_path(path):
-    """
+    r"""
     Return a path expansion
 
     E.g.    ~/some/path     ->  /home/myuser/some/path

@@ -1,5 +1,3 @@
-from __future__ import with_statement
-
 import sys
 
 from nose.tools import ok_, raises
@@ -349,7 +347,7 @@ class TestNetwork(FabricTest):
         env.no_agent = env.no_keys = True
         with show('everything'), password_response(PASSWORDS[env.user], silent=False):
             run("ls /simple")
-        regex = r'^\[%s\] Login password for \'%s\': ' % (env.host_string, env.user)
+        regex = fr'^\[{env.host_string}\] Login password for \'{env.user}\': '
         assert_contains(regex, sys.stderr.getvalue())
 
     @mock_streams('stderr')
@@ -363,7 +361,7 @@ class TestNetwork(FabricTest):
         env.key_filename = CLIENT_PRIVKEY
         with hide('everything'), password_response(CLIENT_PRIVKEY_PASSPHRASE, silent=False):
             run("ls /simple")
-        regex = r'^\[%s\] Login password for \'%s\': ' % (env.host_string, env.user)
+        regex = fr'^\[{env.host_string}\] Login password for \'{env.user}\': '
         assert_contains(regex, sys.stderr.getvalue())
 
     def test_sudo_prompt_display_passthrough(self):
@@ -393,21 +391,21 @@ class TestNetwork(FabricTest):
             sudo('oneliner')
         if display_output:
             expected = """
-[%(prefix)s] sudo: oneliner
-[%(prefix)s] Login password for '%(user)s': \n[%(prefix)s] out: sudo password:
-[%(prefix)s] out: Sorry, try again.
-[%(prefix)s] out: sudo password: \n[%(prefix)s] out: result
-""" % {'prefix': env.host_string, 'user': env.user}
+[{prefix}] sudo: oneliner
+[{prefix}] Login password for '{user}': \n[{prefix}] out: sudo password:
+[{prefix}] out: Sorry, try again.
+[{prefix}] out: sudo password: \n[{prefix}] out: result
+""".format(prefix=env.host_string, user=env.user)
         else:
             # Note lack of first sudo prompt (as it's autoresponded to) and of
             # course the actual result output.
             expected = """
-[%(prefix)s] sudo: oneliner
-[%(prefix)s] Login password for '%(user)s': \n[%(prefix)s] out: Sorry, try again.
-[%(prefix)s] out: sudo password: """ % {
-    'prefix': env.host_string,
-    'user': env.user
-}
+[{prefix}] sudo: oneliner
+[{prefix}] Login password for '{user}': \n[{prefix}] out: Sorry, try again.
+[{prefix}] out: sudo password: """.format(
+    prefix=env.host_string,
+    user=env.user
+)
         eq_(expected[1:], sys.stdall.getvalue())
 
     @mock_streams('both')
@@ -429,15 +427,15 @@ class TestNetwork(FabricTest):
             sudo('oneliner')
             sudo('twoliner')
         expected = """
-[%(prefix)s] sudo: oneliner
-[%(prefix)s] Login password for '%(user)s': \n[%(prefix)s] out: sudo password:
-[%(prefix)s] out: Sorry, try again.
-[%(prefix)s] out: sudo password: \n[%(prefix)s] out: result
-[%(prefix)s] sudo: twoliner
-[%(prefix)s] out: sudo password:
-[%(prefix)s] out: result1
-[%(prefix)s] out: result2
-""" % {'prefix': env.host_string, 'user': env.user}
+[{prefix}] sudo: oneliner
+[{prefix}] Login password for '{user}': \n[{prefix}] out: sudo password:
+[{prefix}] out: Sorry, try again.
+[{prefix}] out: sudo password: \n[{prefix}] out: result
+[{prefix}] sudo: twoliner
+[{prefix}] out: sudo password:
+[{prefix}] out: result1
+[{prefix}] out: result2
+""".format(prefix=env.host_string, user=env.user)
         eq_(sys.stdall.getvalue(), expected[1:])
 
     @mock_streams('both')
@@ -463,12 +461,12 @@ class TestNetwork(FabricTest):
                 run('normal')
                 run('silent')
         expected = """
-[%(prefix)s] run: normal
-[%(prefix)s] Login password for '%(user)s': \n[%(prefix)s] out: foo
-[%(prefix)s] run: silent
-[%(prefix)s] run: normal
-[%(prefix)s] out: foo
-""" % {'prefix': env.host_string, 'user': env.user}
+[{prefix}] run: normal
+[{prefix}] Login password for '{user}': \n[{prefix}] out: foo
+[{prefix}] run: silent
+[{prefix}] run: normal
+[{prefix}] out: foo
+""".format(prefix=env.host_string, user=env.user)
         eq_(expected[1:], sys.stdall.getvalue())
 
     @mock_streams('both')
@@ -490,12 +488,12 @@ class TestNetwork(FabricTest):
             run('oneliner')
             run('twoliner')
         expected = """
-[%(prefix)s] run: oneliner
-[%(prefix)s] Login password for '%(user)s': \n[%(prefix)s] out: result
-[%(prefix)s] run: twoliner
-[%(prefix)s] out: result1
-[%(prefix)s] out: result2
-""" % {'prefix': env.host_string, 'user': env.user}
+[{prefix}] run: oneliner
+[{prefix}] Login password for '{user}': \n[{prefix}] out: result
+[{prefix}] run: twoliner
+[{prefix}] out: result1
+[{prefix}] out: result2
+""".format(prefix=env.host_string, user=env.user)
         eq_(expected[1:], sys.stdall.getvalue())
 
     @mock_streams('both')
@@ -518,12 +516,12 @@ class TestNetwork(FabricTest):
                 run('oneliner')
                 run('twoliner')
         expected = """
-[%(prefix)s] run: oneliner
-[%(prefix)s] Login password for '%(user)s': \nresult
-[%(prefix)s] run: twoliner
+[{prefix}] run: oneliner
+[{prefix}] Login password for '{user}': \nresult
+[{prefix}] run: twoliner
 result1
 result2
-""" % {'prefix': env.host_string, 'user': env.user}
+""".format(prefix=env.host_string, user=env.user)
         eq_(expected[1:], sys.stdall.getvalue())
 
     @server()
@@ -575,7 +573,7 @@ class TestConnections(FabricTest):
                 run("echo foo")
             except NetworkError as exc:
                 exp = "Server '[127.0.0.1]:2200' not found in known_hosts"
-                assert str(exc) == exp, "%s != %s" % (exc, exp)
+                assert str(exc) == exp, f"{exc} != {exp}"
             else:
                 raise AssertionError("Host connected without valid "
                                      "fingerprint.")
@@ -604,7 +602,7 @@ class TestParallelConnections(FabricTest):
 
 class TestSSHConfig(FabricTest):
     def env_setup(self):
-        super(TestSSHConfig, self).env_setup()
+        super().env_setup()
         env.use_ssh_config = True
         env.ssh_config_path = support("ssh_config")
         # Undo the changes FabricTest makes to env for server support

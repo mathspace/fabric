@@ -18,7 +18,7 @@ class NetworkError(Exception):
         return self.message or ""
 
     def __repr__(self):
-        return "%s(%s) => %r" % (
+        return "{}({}) => {!r}".format(
             self.__class__.__name__, self.message, self.wrapped
         )
 
@@ -29,4 +29,4 @@ class CommandTimeout(Exception):
 
         message = 'Command failed to finish in %s seconds' % (timeout)
         self.message = message
-        super(CommandTimeout, self).__init__(message)
+        super().__init__(message)

@@ -24,7 +24,7 @@ def confirm(question, default=True):
         suffix = "y/N"
     # Loop till we get something we like
     while True:
-        response = prompt("%s [%s] " % (question, suffix)).lower()
+        response = prompt(f"{question} [{suffix}] ").lower()
         # Default
         if not response:
             return default

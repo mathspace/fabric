@@ -1,5 +1,5 @@
 import copy
-from collections import Mapping
+from collections.abc import Mapping
 from functools import partial
 import six
 import os.path
@@ -467,7 +467,7 @@ class TestTaskAliases(FabricTest):
 class TestNamespaces(FabricTest):
     def setup(self):
         # Parent class preserves current env
-        super(TestNamespaces, self).setup()
+        super().setup()
         # Reset new-style-tests flag so running tests via Fab itself doesn't
         # muck with it.
         import fabric.state
@@ -618,7 +618,7 @@ def name_to_task(name):
 
 def strings_to_tasks(d):
     ret = {}
-    for key, value in six.iteritems(d):
+    for key, value in d.items():
         if isinstance(value, Mapping):
             val = strings_to_tasks(value)
         else:

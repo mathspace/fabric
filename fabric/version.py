@@ -47,7 +47,7 @@ def get_version(form='short'):
     """
     # Setup
     versions = {}
-    branch = "%s.%s" % (VERSION[0], VERSION[1])
+    branch = f"{VERSION[0]}.{VERSION[1]}"
     tertiary = VERSION[2]
     type_ = VERSION[3]
     final = (type_ == "final")
@@ -63,7 +63,7 @@ def get_version(form='short'):
     if (tertiary or final):
         v += "." + str(tertiary)
     if post:
-        v += '.%s%s' % (type_, type_num)
+        v += f'.{type_}{type_num}'
     elif not final:
         v += firsts
         if type_num:

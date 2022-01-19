@@ -3,7 +3,7 @@ import six
 import sys
 
 
-class ThreadHandler(object):
+class ThreadHandler:
     def __init__(self, name, callable, *args, **kwargs):
         # Set up exception handling
         self.exception = None
@@ -23,4 +23,4 @@ class ThreadHandler(object):
     def raise_if_needed(self):
         if self.exception:
             e = self.exception
-            six.reraise(e[0], e[1], e[2])
+            raise e[1].with_traceback(e[2])

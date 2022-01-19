@@ -41,7 +41,7 @@ def _wrap_with(code):
 
         if bold:
             c = "1;%s" % c
-        return "\033[%sm%s\033[0m" % (c, text)
+        return f"\033[{c}m{text}\033[0m"
     return inner
 
 red = _wrap_with('31')

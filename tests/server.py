@@ -1,5 +1,3 @@
-from __future__ import with_statement
-
 import os
 import re
 import six
@@ -408,7 +406,7 @@ def serve_responses(responses, files, passwords, home, pubkeys, port):
             stderr = ""
             status = 0
             sleep = 0
-            if isinstance(result, six.string_types):
+            if isinstance(result, str):
                 stdout = result
             else:
                 size = len(result)
@@ -491,6 +489,6 @@ def server(
                 # Handle subthread exceptions
                 e = worker.exception
                 if e:
-                    six.reraise(e[0], e[1], e[2])
+                    raise e[1].with_traceback(e[2])
         return inner
     return run_server

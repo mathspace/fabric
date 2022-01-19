@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sys
 from io import BytesIO
 
@@ -39,9 +38,9 @@ def test_pip_progressbar_at_4096_byte_boundary_error():
     """
     expect = '█' * 4096
 
-    class Mock(object):
+    class Mock:
         def __init__(self):
-            three_bytes = u'█'.encode('utf-8')
+            three_bytes = '█'.encode()
             # 4096 comes from OutputLooper.read_size being hard-coded to 4096
             self.source = BytesIO(three_bytes * 4096)
 
